@@ -1,21 +1,28 @@
 import express from 'express'
 import mongoose from 'mongoose'
-import dotenv from 'dotenv'
+import { config } from 'dotenv'
+import path from 'path'
 
 import { userRouter } from './routes/user.route'
+
+config({ path: path.resolve(__dirname, '../.env') })
 
 const app = express()
 app.use(express.json())
 
-dotenv.config()
-
 app.use('/api/users', userRouter)
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-non-null-assertion
-mongoose.connect(process.env.DB_STRING!, () => {
-  // eslint-disable-next-line no-console
-  console.log('Connected to DB')
-})
+mongoose
+  .connect(process.env.DB_STRING)
+  .then(() => {
+    // eslint-disable-next-line no-console
+    console.log('Connected to DB')
+  })
+  .catch((error) => {
+    // eslint-disable-next-line no-console
+    console.log(error)
+  })
 
 const PORT = process.env.PORT ?? 3000
 app.listen(PORT, () => {

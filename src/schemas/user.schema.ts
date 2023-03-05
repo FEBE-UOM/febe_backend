@@ -1,25 +1,13 @@
 import mongoose from 'mongoose'
-import { UserWithPassword } from '../models/db/user.model'
+import { User } from '../models/db/user.model'
 
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: false,
       min: 6,
       max: 255,
-    },
-    email: {
-      type: String,
-      required: true,
-      max: 255,
-      min: 6,
-    },
-    password: {
-      type: String,
-      required: true,
-      max: 1024,
-      min: 6,
     },
     phoneNumber: {
       type: String,
@@ -27,11 +15,19 @@ const userSchema = new mongoose.Schema(
       max: 10,
       min: 10,
     },
+    type: {
+      type: String,
+      required: true,
+    },
+    isSignupCompleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
   }
 )
 
-const Users = mongoose.model<UserWithPassword>('users', userSchema)
+const Users = mongoose.model<User>('users', userSchema)
 export { Users }

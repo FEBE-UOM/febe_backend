@@ -1,13 +1,12 @@
+type UserType = 'enabler' | 'entrepreneur'
+
 interface User {
   name: string
-  email: string
   phoneNumber: string
+  type: UserType
+  isSignupCompleted: boolean
   createdAt: Date
   updatedAt: Date
 }
 
-interface UserWithPassword extends User {
-  password: string
-}
-
-export { User, UserWithPassword }
+export { User, UserType }

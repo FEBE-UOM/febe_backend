@@ -6,6 +6,9 @@ declare global {
       PORT?: string
       PWD: string
       TOKEN_SECRET: string
+      TWILIO_ACCOUNT_SID: string
+      TWILIO_AUTH_TOKEN: string
+      TWILIO_PHONE_NUMBER: string
     }
   }
 }

@@ -1,82 +1,101 @@
 import { Router, Request, Response } from 'express'
-import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import {
   validateUserLogin,
-  validateUserRegistration,
+  validateUserVerifyOtp,
 } from '../helpers/validation.helper'
 import { Users } from '../schemas/user.schema'
-import { UserWithPassword } from '../models/db/user.model'
 import { UserLoginRequest } from '../models/http/request/user-login.request.model'
+import { Utils } from '../helpers/utils.helper'
+import { Otps } from '../schemas/otp.schema'
+import { UserVerifyOtpRequest } from '../models/http/request/user-verify-otp.request.model'
+
 const router = Router()
 
 // Register
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
-    const body = req.body as UserWithPassword
-    const { error } = validateUserRegistration(body)
+    const body = req.body as UserLoginRequest
+    const { error } = validateUserLogin(body)
 
     if (error) {
-      try {
-        return res.status(400).send({ message: error.details[0].message })
-      } catch (err) {
-        return res.status(400).send({
-          message:
-            'Password of minimum length 6, must contain atleast 1 special character, 1 lowercase letter, 1 uppercase letter and 1 number',
-        })
-      }
+      return res.status(400).send({ message: error.details[0].message })
     }
 
-    const emailExists = await Users.findOne({ email: body.email })
-    if (emailExists != null) {
-      return res.status(400).send({ message: 'email already exists' })
-    }
-
-    const salt = await bcrypt.genSalt(10)
-    const hashPassword = await bcrypt.hash(body.password, salt)
-
-    const user = new Users({
-      name: body.name,
-      email: body.email,
-      password: hashPassword,
-      phoneNumber: body.phoneNumber,
+    let currentUser = await Users.findOne({
+      phoneNumber: body.phonenumber,
     })
 
-    const savedUser = await user.save()
-    res.send({ user: savedUser._id })
+    if (!currentUser) {
+      currentUser = new Users({
+        phoneNumber: body.phonenumber,
+        type: body.type,
+      })
+      await currentUser.save()
+    }
+
+    const code = Utils.generateOTP()
+    const message = await Utils.sendSms(
+      body.phonenumber,
+      `Your OTP for FEBE login is: ${code.toString()}`
+    )
+
+    const otp = new Otps({
+      code,
+      expiresAt: Date.now() + 60 * 1000,
+      isActive: true,
+      phonenumber: body.phonenumber,
+    })
+    await otp.save()
+    return res.status(200).json({
+      messageId: message.sid,
+    })
   } catch (error) {
     return res.status(500).send({ message: (error as Error).message })
   }
 })
 
-// Login
-router.post('/login', async (req: Request, res: Response) => {
+// Verify OTP
+router.post('/verify-otp', async (req: Request, res: Response) => {
   try {
-    const body = req.body as UserLoginRequest
-    const { error } = validateUserLogin(body)
+    const body = req.body as UserVerifyOtpRequest
+    const { error } = validateUserVerifyOtp(body)
+
     if (error) {
       return res.status(400).send({ message: error.details[0].message })
     }
 
-    const user = await Users.findOne({ email: body.email })
-    if (!user) {
-      return res.status(400).send({ message: "email doesn't exists" })
+    const otpDetails = await Otps.findOne({
+      phonenumber: body.phonenumber,
+      code: body.otp,
+      isActive: true,
+    })
+
+    if (!otpDetails) {
+      return res.status(400).send({ message: 'invalid otp' })
     }
 
-    const validPassword = await bcrypt.compare(body.password, user.password)
-    if (!validPassword) {
-      return res.status(400).send({ message: 'Invalid password' })
+    if (otpDetails.expiresAt.getTime() < Date.now()) {
+      return res.status(400).send({ message: 'otp expired' })
+    }
+
+    otpDetails.isActive = false
+    await otpDetails.save()
+
+    const currentUser = await Users.findOne({ phoneNumber: body.phonenumber })
+    if (!currentUser) {
+      return res.status(400).send({ message: 'user not found' })
     }
 
     // Create and assign a token
     const token = jwt.sign(
       {
-        id: user._id,
+        id: currentUser._id,
+        type: currentUser.type,
       },
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-non-null-assertion
       process.env.TOKEN_SECRET!
     )
-
     return res.send({ 'auth-token': token })
   } catch (error) {
     return res.status(500).send({ message: (error as Error).message })

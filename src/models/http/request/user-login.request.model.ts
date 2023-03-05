@@ -1,5 +1,7 @@
+import { UserType } from '../../db/user.model'
+
 interface UserLoginRequest {
-  email: string
-  password: string
+  phonenumber: string
+  type: UserType
 }
 export { UserLoginRequest }
