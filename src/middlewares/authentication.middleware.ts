@@ -1,11 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
+import { JWTPayload } from '../models/http/user-request.model'
 import { Users } from '../schemas/user.schema'
-
-interface JWTPayload {
-  _id: string
-  type: string
-}
 
 const authenticateUser = async (
   req: Request,
@@ -13,14 +9,14 @@ const authenticateUser = async (
   next: NextFunction
 ): Promise<any> => {
   try {
-    const authHeader = req.headers.Authorisation as string
+    const authHeader = req.get('Authorization') as string
     if (!authHeader) {
       return res.status(401).json({ message: 'authentication token missing' })
     }
 
-    const token = authHeader.split('Bearer ')[0]
+    const token = authHeader.split(' ')[1]
     if (!token) {
-      return res.status(401).json({ message: 'authentication token missing' })
+      return res.status(401).json({ message: 'token missing' })
     }
 
     const payload = jwt.verify(token, process.env.TOKEN_SECRET) as JWTPayload
@@ -28,7 +24,7 @@ const authenticateUser = async (
       return res.status(401).json({ message: 'invalid access token' })
     }
 
-    const user = await Users.findById(payload._id)
+    const user = await Users.findById(payload.id)
     if (!user) {
       return res.status(401).json({ message: 'user not found' })
     }

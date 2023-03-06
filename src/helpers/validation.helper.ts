@@ -2,6 +2,7 @@ import Joi from '@hapi/joi'
 import { EntrepreneurIndustry } from '../models/db/entrepreneur_industry.model'
 import { EnablerCategoryRequest } from '../models/http/request/create-enabler-category.request.model'
 import { EnablerDesignationRequest } from '../models/http/request/enabler-designation.request.model'
+import { UpdateUserRequest } from '../models/http/request/update-user.request.model'
 import { UserLoginRequest } from '../models/http/request/user-login.request.model'
 import { UserVerifyOtpRequest } from '../models/http/request/user-verify-otp.request.model'
 
@@ -56,10 +57,44 @@ const validateEntrepreneurIndustry = (
   return schema.validate(data)
 }
 
+const validateUpdateUser = (data: UpdateUserRequest): Joi.ValidationResult => {
+  const enablerSchema = Joi.object({
+    about: Joi.string(),
+    linkedInURL: Joi.string(),
+    portfolioURL: Joi.string(),
+    aadhar: {
+      front: Joi.string(),
+      back: Joi.string(),
+    },
+    designation: Joi.string(),
+  })
+
+  const entrepreneurSchema = Joi.object({
+    about: Joi.string(),
+    industry: Joi.string(),
+    companyName: Joi.string(),
+    websiteURL: Joi.string(),
+    linkedInURL: Joi.string(),
+    companyRegistrationDocument: {
+      url: Joi.string(),
+    },
+  })
+
+  const schema = Joi.object({
+    name: Joi.string(),
+    dateOfBirth: Joi.date(),
+    enabler: enablerSchema,
+    entrepreneur: entrepreneurSchema,
+  })
+
+  return schema.validate(data)
+}
+
 export {
   validateUserLogin,
   validateUserVerifyOtp,
   validateEnablerCategory,
   validateEnablerDesignation,
   validateEntrepreneurIndustry,
+  validateUpdateUser,
 }

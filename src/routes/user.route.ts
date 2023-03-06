@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import {
   validateUserLogin,
   validateUserVerifyOtp,
+  validateUpdateUser,
 } from '../helpers/validation.helper'
 import { Users } from '../schemas/user.schema'
 import { UserLoginRequest } from '../models/http/request/user-login.request.model'
@@ -10,6 +11,7 @@ import { Utils } from '../helpers/utils.helper'
 import { Otps } from '../schemas/otp.schema'
 import { UserVerifyOtpRequest } from '../models/http/request/user-verify-otp.request.model'
 import { authenticateUser } from '../middlewares/authentication.middleware'
+import { UpdateUserRequest } from '../models/http/request/update-user.request.model'
 
 const router = Router()
 
@@ -30,7 +32,6 @@ router.post('/login', async (req: Request, res: Response) => {
     if (!currentUser) {
       currentUser = new Users({
         phoneNumber: body.phonenumber,
-        type: body.type,
       })
       await currentUser.save()
     }
@@ -92,7 +93,6 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
     const token = jwt.sign(
       {
         id: currentUser._id,
-        type: currentUser.type,
       },
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-non-null-assertion
       process.env.TOKEN_SECRET!
@@ -105,12 +105,24 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
 
 router.put('/', authenticateUser, async (req: Request, res: Response) => {
   try {
-    const body = req.body as UserVerifyOtpRequest
-    const { error } = validateUserVerifyOtp(body)
+    const body = req.body as UpdateUserRequest
+    const { error } = validateUpdateUser(body)
 
     if (error) {
       return res.status(400).send({ message: error.details[0].message })
     }
+
+    let user = await Users.findById(req.user?.id)
+    if (!user) {
+      return res.status(400).send({ message: 'user not found' })
+    }
+
+    await Users.updateOne(
+      { _id: req.user?.id },
+      { ...body, ...{ isSignupCompleted: true } }
+    )
+    user = await Users.findById(req.user?.id)
+    return res.status(200).json(user)
   } catch (error) {
     return res.status(500).send({ message: (error as Error).message })
   }

@@ -78,10 +78,6 @@ const userSchema = new mongoose.Schema(
       max: 10,
       min: 10,
     },
-    type: {
-      type: String,
-      required: true,
-    },
     isSignupCompleted: {
       type: Boolean,
       default: false,
