@@ -11,7 +11,7 @@ const authenticateUser = async (
   req: Request,
   res: Response,
   next: NextFunction
-): any => {
+): Promise<any> => {
   try {
     const authHeader = req.headers.Authorisation as string
     if (!authHeader) {

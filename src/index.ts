@@ -5,6 +5,7 @@ import path from 'path'
 
 import { userRouter } from './routes/user.route'
 import { enablerCategoryRouter } from './routes/enabler_category.route'
+import { entrepreneurIndustryRouter } from './routes/entrepreneur_industry.route'
 
 config({ path: path.resolve(__dirname, '../.env') })
 
@@ -13,6 +14,7 @@ app.use(express.json())
 
 app.use('/api/users', userRouter)
 app.use('/api/enabler-categories', enablerCategoryRouter)
+app.use('/api/entrepreneur-industry', entrepreneurIndustryRouter)
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-non-null-assertion
 mongoose

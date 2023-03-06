@@ -9,6 +9,7 @@ import { UserLoginRequest } from '../models/http/request/user-login.request.mode
 import { Utils } from '../helpers/utils.helper'
 import { Otps } from '../schemas/otp.schema'
 import { UserVerifyOtpRequest } from '../models/http/request/user-verify-otp.request.model'
+import { authenticateUser } from '../middlewares/authentication.middleware'
 
 const router = Router()
 
@@ -97,6 +98,19 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       process.env.TOKEN_SECRET!
     )
     return res.send({ 'auth-token': token })
+  } catch (error) {
+    return res.status(500).send({ message: (error as Error).message })
+  }
+})
+
+router.put('/', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const body = req.body as UserVerifyOtpRequest
+    const { error } = validateUserVerifyOtp(body)
+
+    if (error) {
+      return res.status(400).send({ message: error.details[0].message })
+    }
   } catch (error) {
     return res.status(500).send({ message: (error as Error).message })
   }

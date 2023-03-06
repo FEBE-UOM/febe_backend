@@ -43,8 +43,8 @@ const entrepreneur = new mongoose.Schema({
     required: true,
   },
   industry: {
-    type: String,
-    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'industry',
   },
   companyName: {
     type: String,
