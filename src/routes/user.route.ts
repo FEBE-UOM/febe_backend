@@ -4,6 +4,7 @@ import {
   validateUserLogin,
   validateUserVerifyOtp,
   validateUpdateUser,
+  validateUserLocation,
 } from '../helpers/validation.helper'
 import { Users } from '../schemas/user.schema'
 import { UserLoginRequest } from '../models/http/request/user-login.request.model'
@@ -12,6 +13,7 @@ import { Otps } from '../schemas/otp.schema'
 import { UserVerifyOtpRequest } from '../models/http/request/user-verify-otp.request.model'
 import { authenticateUser } from '../middlewares/authentication.middleware'
 import { UpdateUserRequest } from '../models/http/request/update-user.request.model'
+import { UpdateUserLocationRequest } from '../models/http/request/update-user-location.request.model'
 
 const router = Router()
 
@@ -32,6 +34,7 @@ router.post('/login', async (req: Request, res: Response) => {
     if (!currentUser) {
       currentUser = new Users({
         phoneNumber: body.phonenumber,
+        type: body.type,
       })
       await currentUser.save()
     }
@@ -127,5 +130,33 @@ router.put('/', authenticateUser, async (req: Request, res: Response) => {
     return res.status(500).send({ message: (error as Error).message })
   }
 })
+
+router.put(
+  '/location',
+  authenticateUser,
+  async (req: Request, res: Response) => {
+    try {
+      const body = req.body as UpdateUserLocationRequest
+      const { error } = validateUserLocation(body)
+
+      if (error) {
+        return res.status(400).send({ message: error.details[0].message })
+      }
+
+      const user = await Users.findById(req.user?.id)
+      if (!user) {
+        return res.status(400).send({ message: 'user not found' })
+      }
+
+      user.location = {
+        coordinates: [body.longitude, body.latitude],
+      }
+      await user.save()
+      return res.status(200).json(body)
+    } catch (error) {
+      return res.status(500).send({ message: (error as Error).message })
+    }
+  }
+)
 
 export { router as userRouter }

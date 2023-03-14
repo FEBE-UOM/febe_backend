@@ -2,6 +2,7 @@ import Joi from '@hapi/joi'
 import { EntrepreneurIndustry } from '../models/db/entrepreneur_industry.model'
 import { EnablerCategoryRequest } from '../models/http/request/create-enabler-category.request.model'
 import { EnablerDesignationRequest } from '../models/http/request/enabler-designation.request.model'
+import { UpdateUserLocationRequest } from '../models/http/request/update-user-location.request.model'
 import { UpdateUserRequest } from '../models/http/request/update-user.request.model'
 import { UserLoginRequest } from '../models/http/request/user-login.request.model'
 import { UserVerifyOtpRequest } from '../models/http/request/user-verify-otp.request.model'
@@ -90,6 +91,17 @@ const validateUpdateUser = (data: UpdateUserRequest): Joi.ValidationResult => {
   return schema.validate(data)
 }
 
+const validateUserLocation = (
+  data: UpdateUserLocationRequest
+): Joi.ValidationResult => {
+  const schema = Joi.object({
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
+  })
+
+  return schema.validate(data)
+}
+
 export {
   validateUserLogin,
   validateUserVerifyOtp,
@@ -97,4 +109,5 @@ export {
   validateEnablerDesignation,
   validateEntrepreneurIndustry,
   validateUpdateUser,
+  validateUserLocation,
 }

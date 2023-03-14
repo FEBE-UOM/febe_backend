@@ -1,6 +1,16 @@
 import mongoose from 'mongoose'
 import { User } from '../models/db/user.model'
 
+const geoSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    default: 'Point',
+  },
+  coordinates: {
+    type: [Number],
+  },
+})
+
 const aadharSchema = new mongoose.Schema({
   front: {
     type: String,
@@ -72,6 +82,10 @@ const userSchema = new mongoose.Schema(
       min: 6,
       max: 255,
     },
+    type: {
+      type: String,
+      enum: ['enabler', 'entrepreneur', 'enabler_and_entrepreneur'],
+    },
     phoneNumber: {
       type: String,
       required: true,
@@ -90,6 +104,10 @@ const userSchema = new mongoose.Schema(
     entrepreneur: {
       type: entrepreneur,
       required: false,
+    },
+    location: {
+      type: geoSchema,
+      index: '2dsphere',
     },
   },
   {

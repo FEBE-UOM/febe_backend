@@ -2,6 +2,7 @@ interface User {
   name: string
   phoneNumber: string
   isSignupCompleted: boolean
+  type: 'enabler' | 'entrepreneur' | 'enabler_and_entrepreneur'
   enabler?: {
     about?: String
     linkedInURL?: String
@@ -21,6 +22,10 @@ interface User {
     companyRegistrationDocument?: {
       url?: String
     }
+  }
+  location?: {
+    type?: String
+    coordinates: Number[]
   }
   createdAt: Date
   updatedAt: Date

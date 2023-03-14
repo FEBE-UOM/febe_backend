@@ -19,7 +19,8 @@ const authenticateUser = async (
       return res.status(401).json({ message: 'token missing' })
     }
 
-    const payload = jwt.verify(token, process.env.TOKEN_SECRET) as JWTPayload
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-non-null-assertion
+    const payload = jwt.verify(token, process.env.TOKEN_SECRET!) as JWTPayload
     if (!payload) {
       return res.status(401).json({ message: 'invalid access token' })
     }
