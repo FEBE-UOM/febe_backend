@@ -159,4 +159,17 @@ router.put(
   }
 )
 
+router.get('/', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const user = await Users.findById(req.user?.id)
+    if (!user) {
+      return res.status(400).send({ message: 'user not found' })
+    }
+
+    return res.status(200).json(user)
+  } catch (error) {
+    return res.status(500).send({ message: (error as Error).message })
+  }
+})
+
 export { router as userRouter }
