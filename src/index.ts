@@ -2,12 +2,14 @@ import express from 'express'
 import mongoose from 'mongoose'
 import { config } from 'dotenv'
 import path from 'path'
+import fs from 'fs'
 
 import { userRouter } from './routes/user.route'
 import { enablerCategoryRouter } from './routes/enabler_category.route'
 import { entrepreneurIndustryRouter } from './routes/entrepreneur_industry.route'
 import { finderRouter } from './routes/finder.route'
 import { authenticateUser } from './middlewares/authentication.middleware'
+import { fileRouter } from './routes/file.router'
 
 config({ path: path.resolve(__dirname, '../.env') })
 
@@ -18,6 +20,12 @@ app.use('/api/users', userRouter)
 app.use('/api/enabler-categories', enablerCategoryRouter)
 app.use('/api/entrepreneur-industry', entrepreneurIndustryRouter)
 app.use('/api/finder', authenticateUser, finderRouter)
+app.use('/api/files', fileRouter)
+
+const dir = '../resources/static/assets/uploads'
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir, { recursive: true })
+}
 
 mongoose
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-non-null-assertion
