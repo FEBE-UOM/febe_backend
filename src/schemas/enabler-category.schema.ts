@@ -9,7 +9,7 @@ const enablerCategory = new mongoose.Schema({
   designations: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'enabler_designations',
+      ref: 'enabler_designation',
     },
   ],
 })

@@ -9,6 +9,13 @@ const router = Router()
 
 router.get('/', async (req, res) => {
   try {
+    const { shouldIncludeDesignations } = req.query
+
+    if (shouldIncludeDesignations) {
+      const categories = await EnablerCategory.find().populate('designations')
+      return res.json(categories)
+    }
+
     const categories = await EnablerCategory.find()
     return res.json(categories)
   } catch (error) {
