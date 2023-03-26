@@ -161,7 +161,15 @@ router.put(
 
 router.get('/', authenticateUser, async (req: Request, res: Response) => {
   try {
-    const user = await Users.findById(req.user?.id)
+    const { expand } = req.query
+    let user = await Users.findById(req.user?.id)
+
+    if (expand) {
+      user = await Users.findById(req.user?.id, { strictPopulate: false })
+        .populate('enabler.designation')
+        .populate('entrepreneur.industry')
+    }
+
     if (!user) {
       return res.status(400).send({ message: 'user not found' })
     }
