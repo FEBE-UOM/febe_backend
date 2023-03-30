@@ -25,6 +25,7 @@ router.get('/', async (req: Request, res: Response) => {
           },
         },
       },
+      _id: { $ne: req.user?.id },
       type,
       'enabler.designation':
         type === 'enabler'
