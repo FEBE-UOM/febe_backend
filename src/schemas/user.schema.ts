@@ -109,6 +109,9 @@ const userSchema = new mongoose.Schema(
       type: geoSchema,
       index: '2dsphere',
     },
+    deviceToken: {
+      type: String,
+    },
   },
   {
     timestamps: true,

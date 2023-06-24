@@ -21,6 +21,7 @@ interface UpdateUserRequest {
       url?: String
     }
   }
+  deviceToken: String
 }
 
 export { UpdateUserRequest }

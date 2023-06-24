@@ -27,6 +27,7 @@ interface User {
     type?: String
     coordinates: Number[]
   }
+  deviceToken: String
   createdAt: Date
   updatedAt: Date
 }

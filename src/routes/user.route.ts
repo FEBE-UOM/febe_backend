@@ -14,8 +14,12 @@ import { UserVerifyOtpRequest } from '../models/http/request/user-verify-otp.req
 import { authenticateUser } from '../middlewares/authentication.middleware'
 import { UpdateUserRequest } from '../models/http/request/update-user.request.model'
 import { UpdateUserLocationRequest } from '../models/http/request/update-user-location.request.model'
+import { Utils } from '../helpers/utils.helper'
+import { Otps } from '../schemas/otp.schema'
 
 const router = Router()
+
+const IS_OTP_DISABLED = process.env.IS_OTP_DISABLED
 
 // Register
 router.post('/login', async (req: Request, res: Response) => {
@@ -39,23 +43,26 @@ router.post('/login', async (req: Request, res: Response) => {
       await currentUser.save()
     }
 
-    // const code = Utils.generateOTP()
-    // const message = await Utils.sendSms(
-    //   body.phonenumber,
-    //   `Your OTP for FEBE login is: ${code.toString()}`
-    // )
+    if (IS_OTP_DISABLED) {
+      return res.status(200).json({ messageId: '' })
+    }
 
-    // const otp = new Otps({
-    //   code,
-    //   expiresAt: Date.now() + 60 * 1000,
-    //   isActive: true,
-    //   phonenumber: body.phonenumber,
-    // })
-    // await otp.save()
-    // return res.status(200).json({
-    //   messageId: message.sid,
-    // })
-    return res.status(200).json({ messageId: '' })
+    const code = Utils.generateOTP()
+    const message = await Utils.sendSms(
+      body.phonenumber,
+      `Your OTP for FEBE login is: ${code.toString()}`
+    )
+
+    const otp = new Otps({
+      code,
+      expiresAt: Date.now() + 60 * 1000,
+      isActive: true,
+      phonenumber: body.phonenumber,
+    })
+    await otp.save()
+    return res.status(200).json({
+      messageId: message.sid,
+    })
   } catch (error) {
     return res.status(500).send({ message: (error as Error).message })
   }
@@ -71,22 +78,24 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
       return res.status(400).send({ message: error.details[0].message })
     }
 
-    // const otpDetails = await Otps.findOne({
-    //   phonenumber: body.phonenumber,
-    //   code: body.otp,
-    //   isActive: true,
-    // })
+    if (!IS_OTP_DISABLED) {
+      const otpDetails = await Otps.findOne({
+        phonenumber: body.phonenumber,
+        code: body.otp,
+        isActive: true,
+      })
 
-    // if (!otpDetails) {
-    //   return res.status(400).send({ message: 'invalid otp' })
-    // }
+      if (!otpDetails) {
+        return res.status(400).send({ message: 'invalid otp' })
+      }
 
-    // if (otpDetails.expiresAt.getTime() < Date.now()) {
-    //   return res.status(400).send({ message: 'otp expired' })
-    // }
+      if (otpDetails.expiresAt.getTime() < Date.now()) {
+        return res.status(400).send({ message: 'otp expired' })
+      }
 
-    // otpDetails.isActive = false
-    // await otpDetails.save()
+      otpDetails.isActive = false
+      await otpDetails.save()
+    }
 
     const currentUser = await Users.findOne({ phoneNumber: body.phonenumber })
     if (!currentUser) {

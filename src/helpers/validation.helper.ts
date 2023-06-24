@@ -86,6 +86,7 @@ const validateUpdateUser = (data: UpdateUserRequest): Joi.ValidationResult => {
     dateOfBirth: Joi.date(),
     enabler: enablerSchema,
     entrepreneur: entrepreneurSchema,
+    deviceToken: Joi.string(),
   })
 
   return schema.validate(data)
