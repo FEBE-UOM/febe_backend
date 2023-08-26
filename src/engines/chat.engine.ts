@@ -67,18 +67,16 @@ class ChatEngine {
       await currentRoom.save()
     }
 
-    if (!currentRoom.activeUsers.includes(data.targetUserId)) {
-      await this.storeMessageInDB(data, currentRoom.roomId)
-      await this.sendPushNotification(data)
-      return
-    }
-
     io.to(currentRoom.roomId).emit('chat', {
       username: data.userId,
       message: data.message,
     })
 
     await this.storeMessageInDB(data, currentRoom.roomId)
+
+    if (!currentRoom.activeUsers.includes(data.targetUserId)) {
+      await this.sendPushNotification(data)
+    }
   }
 
   static onUserDisconnected = async (
